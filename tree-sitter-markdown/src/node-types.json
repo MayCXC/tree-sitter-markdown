@@ -150,6 +150,10 @@
           "named": true
         },
         {
+          "type": "rfc822_metadata",
+          "named": true
+        },
+        {
           "type": "section",
           "named": true
         }
@@ -928,6 +932,10 @@
   },
   {
     "type": "plus_metadata",
+    "named": true
+  },
+  {
+    "type": "rfc822_metadata",
     "named": true
   },
   {

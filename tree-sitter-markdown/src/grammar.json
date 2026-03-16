@@ -18,6 +18,10 @@
                 {
                   "type": "SYMBOL",
                   "name": "plus_metadata"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "rfc822_metadata"
                 }
               ]
             },
@@ -5366,6 +5370,10 @@
     {
       "type": "SYMBOL",
       "name": "plus_metadata"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "rfc822_metadata"
     },
     {
       "type": "SYMBOL",

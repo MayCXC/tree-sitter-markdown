@@ -18,6 +18,7 @@ module.exports = grammar({
             optional(choice(
                 common.EXTENSION_MINUS_METADATA ? $.minus_metadata : choice(),
                 common.EXTENSION_PLUS_METADATA ? $.plus_metadata : choice(),
+                common.EXTENSION_RFC822_METADATA ? $.rfc822_metadata : choice(),
             )),
             alias(prec.right(repeat($._block_not_section)), $.section),
             repeat($.section),
@@ -577,6 +578,7 @@ module.exports = grammar({
 
         $.minus_metadata,
         $.plus_metadata,
+        $.rfc822_metadata,
 
         $._pipe_table_start,
         $._pipe_table_line_ending,

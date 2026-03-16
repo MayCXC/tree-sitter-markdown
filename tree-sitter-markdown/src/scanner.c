@@ -52,6 +52,7 @@ typedef enum {
     TOKEN_EOF,
     MINUS_METADATA,
     PLUS_METADATA,
+    RFC822_METADATA,
     PIPE_TABLE_START,
     PIPE_TABLE_LINE_ENDING,
 } TokenType;
@@ -167,6 +168,7 @@ static const bool paragraph_interrupt_symbols[] = {
     false, // EOF,
     false, // MINUS_METADATA,
     false, // PLUS_METADATA,
+    false, // RFC822_METADATA,
     true,  // PIPE_TABLE_START,
     false, // PIPE_TABLE_LINE_ENDING,
 };
@@ -1366,6 +1368,115 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
                 return true;
             }
         }
+        // RFC 822 metadata: "Key: Value" lines at the start of the document,
+        // terminated by a blank line. Only valid when no blocks are open.
+        if (valid_symbols[RFC822_METADATA] && s->open_blocks.size == 0 &&
+            s->indentation == 0) {
+            // Check if current line looks like "Key: Value"
+            // Key must be alpha/hyphen, followed by colon and space
+            if ((lexer->lookahead >= 'A' && lexer->lookahead <= 'Z') ||
+                (lexer->lookahead >= 'a' && lexer->lookahead <= 'z')) {
+                mark_end(s, lexer);
+                bool has_colon = false;
+                // Scan key part (alphanumeric, hyphen, underscore)
+                while ((lexer->lookahead >= 'A' && lexer->lookahead <= 'Z') ||
+                       (lexer->lookahead >= 'a' && lexer->lookahead <= 'z') ||
+                       (lexer->lookahead >= '0' && lexer->lookahead <= '9') ||
+                       lexer->lookahead == '-' || lexer->lookahead == '_') {
+                    advance(s, lexer);
+                }
+                if (lexer->lookahead == ':') {
+                    advance(s, lexer);
+                    if (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+                        has_colon = true;
+                    }
+                }
+                if (has_colon) {
+                    // Consume rest of first header line
+                    while (lexer->lookahead != '\n' &&
+                           lexer->lookahead != '\r' &&
+                           !lexer->eof(lexer)) {
+                        advance(s, lexer);
+                    }
+                    // Consume subsequent header lines until blank line or EOF
+                    for (;;) {
+                        // Advance over newline
+                        if (lexer->lookahead == '\r') {
+                            advance(s, lexer);
+                            if (lexer->lookahead == '\n') {
+                                advance(s, lexer);
+                            }
+                        } else if (lexer->lookahead == '\n') {
+                            advance(s, lexer);
+                        }
+                        // Blank line or EOF ends the metadata
+                        if (lexer->lookahead == '\n' ||
+                            lexer->lookahead == '\r' ||
+                            lexer->eof(lexer)) {
+                            // Consume the blank line
+                            if (lexer->lookahead == '\r') {
+                                advance(s, lexer);
+                                if (lexer->lookahead == '\n') {
+                                    advance(s, lexer);
+                                }
+                            } else if (lexer->lookahead == '\n') {
+                                advance(s, lexer);
+                            }
+                            mark_end(s, lexer);
+                            lexer->result_symbol = RFC822_METADATA;
+                            return true;
+                        }
+                        // Check if next line is also a header (Key: or
+                        // continuation whitespace)
+                        bool is_header_line = false;
+                        if (lexer->lookahead == ' ' ||
+                            lexer->lookahead == '\t') {
+                            // Continuation line (folded header)
+                            is_header_line = true;
+                        } else if (
+                            (lexer->lookahead >= 'A' &&
+                             lexer->lookahead <= 'Z') ||
+                            (lexer->lookahead >= 'a' &&
+                             lexer->lookahead <= 'z')) {
+                            // Could be another header, scan for colon
+                            while (
+                                (lexer->lookahead >= 'A' &&
+                                 lexer->lookahead <= 'Z') ||
+                                (lexer->lookahead >= 'a' &&
+                                 lexer->lookahead <= 'z') ||
+                                (lexer->lookahead >= '0' &&
+                                 lexer->lookahead <= '9') ||
+                                lexer->lookahead == '-' ||
+                                lexer->lookahead == '_') {
+                                advance(s, lexer);
+                            }
+                            if (lexer->lookahead == ':') {
+                                is_header_line = true;
+                            }
+                        }
+                        if (!is_header_line) {
+                            // Not a header line and not blank. This
+                            // means the metadata block ended before a
+                            // blank line. Not valid RFC 822 metadata.
+                            break;
+                        }
+                        // Consume rest of line
+                        while (lexer->lookahead != '\n' &&
+                               lexer->lookahead != '\r' &&
+                               !lexer->eof(lexer)) {
+                            advance(s, lexer);
+                        }
+                        if (lexer->eof(lexer)) {
+                            // Metadata at end of file with no blank line
+                            mark_end(s, lexer);
+                            lexer->result_symbol = RFC822_METADATA;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
         // Decide which tokens to consider based on the first non-whitespace
         // character
         switch (lexer->lookahead) {

@@ -12,12 +12,12 @@
               "type": "CHOICE",
               "members": [
                 {
-                  "type": "CHOICE",
-                  "members": []
+                  "type": "SYMBOL",
+                  "name": "minus_metadata"
                 },
                 {
-                  "type": "CHOICE",
-                  "members": []
+                  "type": "SYMBOL",
+                  "name": "plus_metadata"
                 },
                 {
                   "type": "SYMBOL",

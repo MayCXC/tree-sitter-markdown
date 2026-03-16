@@ -146,6 +146,14 @@
           "named": true
         },
         {
+          "type": "minus_metadata",
+          "named": true
+        },
+        {
+          "type": "plus_metadata",
+          "named": true
+        },
+        {
           "type": "section",
           "named": true
         }
@@ -911,6 +919,10 @@
     "named": true
   },
   {
+    "type": "minus_metadata",
+    "named": true
+  },
+  {
     "type": "numeric_character_reference",
     "named": true
   },
@@ -920,6 +932,10 @@
   },
   {
     "type": "pipe_table_align_right",
+    "named": true
+  },
+  {
+    "type": "plus_metadata",
     "named": true
   },
   {

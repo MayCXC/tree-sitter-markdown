@@ -142,15 +142,7 @@
       "required": false,
       "types": [
         {
-          "type": "minus_metadata",
-          "named": true
-        },
-        {
-          "type": "plus_metadata",
-          "named": true
-        },
-        {
-          "type": "rfc822_metadata",
+          "type": "flat_metadata",
           "named": true
         },
         {
@@ -915,7 +907,7 @@
     "named": true
   },
   {
-    "type": "minus_metadata",
+    "type": "flat_metadata",
     "named": true
   },
   {
@@ -928,14 +920,6 @@
   },
   {
     "type": "pipe_table_align_right",
-    "named": true
-  },
-  {
-    "type": "plus_metadata",
-    "named": true
-  },
-  {
-    "type": "rfc822_metadata",
     "named": true
   },
   {

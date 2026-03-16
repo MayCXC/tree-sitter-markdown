@@ -52,7 +52,7 @@ typedef enum {
     TOKEN_EOF,
     MINUS_METADATA,
     PLUS_METADATA,
-    RFC822_METADATA,
+    FLAT_METADATA,
     PIPE_TABLE_START,
     PIPE_TABLE_LINE_ENDING,
 } TokenType;
@@ -168,7 +168,7 @@ static const bool paragraph_interrupt_symbols[] = {
     false, // EOF,
     false, // MINUS_METADATA,
     false, // PLUS_METADATA,
-    false, // RFC822_METADATA,
+    false, // FLAT_METADATA,
     true,  // PIPE_TABLE_START,
     false, // PIPE_TABLE_LINE_ENDING,
 };
@@ -1370,7 +1370,7 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
         }
         // RFC 822 metadata: "Key: Value" lines at the start of the document,
         // terminated by a blank line. Only valid when no blocks are open.
-        if (valid_symbols[RFC822_METADATA] && s->open_blocks.size == 0 &&
+        if (valid_symbols[FLAT_METADATA] && s->open_blocks.size == 0 &&
             s->indentation == 0) {
             // Check if current line looks like "Key: Value"
             // Key must be alpha/hyphen, followed by colon and space
@@ -1387,7 +1387,11 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
                 }
                 if (lexer->lookahead == ':') {
                     advance(s, lexer);
-                    if (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+                    // Accept colon followed by space/tab (normal) or
+                    // newline/EOF (empty value like "Key:")
+                    if (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
+                        lexer->lookahead == '\n' || lexer->lookahead == '\r' ||
+                        lexer->eof(lexer)) {
                         has_colon = true;
                     }
                 }
@@ -1423,7 +1427,7 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
                                 advance(s, lexer);
                             }
                             mark_end(s, lexer);
-                            lexer->result_symbol = RFC822_METADATA;
+                            lexer->result_symbol = FLAT_METADATA;
                             return true;
                         }
                         // Check if next line is also a header (Key: or
@@ -1469,7 +1473,7 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid_symbols) {
                         if (lexer->eof(lexer)) {
                             // Metadata at end of file with no blank line
                             mark_end(s, lexer);
-                            lexer->result_symbol = RFC822_METADATA;
+                            lexer->result_symbol = FLAT_METADATA;
                             return true;
                         }
                     }

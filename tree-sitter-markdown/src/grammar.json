@@ -12,16 +12,16 @@
               "type": "CHOICE",
               "members": [
                 {
-                  "type": "SYMBOL",
-                  "name": "minus_metadata"
+                  "type": "CHOICE",
+                  "members": []
+                },
+                {
+                  "type": "CHOICE",
+                  "members": []
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "plus_metadata"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "rfc822_metadata"
+                  "name": "flat_metadata"
                 }
               ]
             },
@@ -5373,7 +5373,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "rfc822_metadata"
+      "name": "flat_metadata"
     },
     {
       "type": "SYMBOL",
